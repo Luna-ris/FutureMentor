@@ -1,13 +1,16 @@
-from aiogram import Router, Dispatcher
-from aiogram.filters import Command
-from aiogram.types import Message
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
+from aiogram import Dispatcher, types
+from aiogram.dispatcher.filters import Command
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.storage import MemoryStorage
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher.filters.state import State, StatesGroup
 from datetime import datetime, timedelta
 from database import post_data, fetch_data
 from utils import get_message, analyze_motivational_message, analyze_progress
 
-router = Router()
+# Инициализация диспетчера
+storage = MemoryStorage()
+dp = Dispatcher(storage=storage)
 
 # Создание цели
 class GoalStates(StatesGroup):
@@ -15,19 +18,19 @@ class GoalStates(StatesGroup):
     DEADLINE = State()
     MESSAGE = State()
 
-@router.message(Command("create_goal"))
-async def create_goal_start(message: Message, state: FSMContext):
+@dp.message_handler(Command("create_goal"))
+async def create_goal_start(message: types.Message, state: FSMContext):
     await message.reply(get_message("create_goal_title", message.from_user.id))
     await state.set_state(GoalStates.TITLE)
 
-@router.message(GoalStates.TITLE)
-async def process_goal_title(message: Message, state: FSMContext):
+@dp.message_handler(state=GoalStates.TITLE)
+async def process_goal_title(message: types.Message, state: FSMContext):
     await state.update_data(title=message.text)
     await message.reply(get_message("create_goal_deadline", message.from_user.id))
     await state.set_state(GoalStates.DEADLINE)
 
-@router.message(GoalStates.DEADLINE)
-async def process_goal_deadline(message: Message, state: FSMContext):
+@dp.message_handler(state=GoalStates.DEADLINE)
+async def process_goal_deadline(message: types.Message, state: FSMContext):
     try:
         deadline = datetime.strptime(message.text, "%d.%m.%Y")
         await state.update_data(deadline=deadline)
@@ -36,8 +39,8 @@ async def process_goal_deadline(message: Message, state: FSMContext):
     except ValueError:
         await message.reply("Invalid date format! Use dd.mm.yyyy.")
 
-@router.message(GoalStates.MESSAGE)
-async def process_goal_message(message: Message, state: FSMContext):
+@dp.message_handler(state=GoalStates.MESSAGE)
+async def process_goal_message(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
     user = fetch_data("users", {"telegram_id": message.from_user.id})
     if not user:
@@ -62,11 +65,11 @@ async def process_goal_message(message: Message, state: FSMContext):
     post_data("goals", goal_data)
     mood = analyze_motivational_message(message.text)
     await message.reply(f"✅ Goal '{user_data['title']}' created! Mood of your message: {mood}\nI'll remind you about the deadline one day before: {user_data['deadline'].strftime('%d.%m.%Y')}")
-    await state.clear()
+    await state.finish()
 
 # Просмотр дедлайнов
-@router.message(Command("view_deadlines"))
-async def view_deadlines(message: Message):
+@dp.message_handler(Command("view_deadlines"))
+async def view_deadlines(message: types.Message):
     user = fetch_data("users", {"telegram_id": message.from_user.id})
     goals = fetch_data("goals", {"user_id": user[0]['id']})
     if not goals:
@@ -83,19 +86,19 @@ class StudyCapsuleStates(StatesGroup):
     CONTENT = State()
     SEND_DATE = State()
 
-@router.message(Command("add_study_capsule"))
-async def add_study_capsule_start(message: Message, state: FSMContext):
+@dp.message_handler(Command("add_study_capsule"))
+async def add_study_capsule_start(message: types.Message, state: FSMContext):
     await message.reply(get_message("study_capsule_content", message.from_user.id))
     await state.set_state(StudyCapsuleStates.CONTENT)
 
-@router.message(StudyCapsuleStates.CONTENT)
-async def process_study_capsule_content(message: Message, state: FSMContext):
+@dp.message_handler(state=StudyCapsuleStates.CONTENT)
+async def process_study_capsule_content(message: types.Message, state: FSMContext):
     await state.update_data(content=message.text)
     await message.reply(get_message("study_capsule_send_date", message.from_user.id))
     await state.set_state(StudyCapsuleStates.SEND_DATE)
 
-@router.message(StudyCapsuleStates.SEND_DATE)
-async def process_study_capsule_send_date(message: Message, state: FSMContext):
+@dp.message_handler(state=StudyCapsuleStates.SEND_DATE)
+async def process_study_capsule_send_date(message: types.Message, state: FSMContext):
     try:
         send_date = datetime.strptime(message.text, "%d.%m.%Y")
         user_data = await state.get_data()
@@ -109,7 +112,7 @@ async def process_study_capsule_send_date(message: Message, state: FSMContext):
         }
         post_data("study_capsules", capsule_data)
         await message.reply("✅ Study capsule created! I’ll remind you later.")
-        await state.clear()
+        await state.finish()
     except ValueError:
         await message.reply("Invalid date format! Use dd.mm.yyyy.")
 
@@ -119,8 +122,8 @@ class TestStates(StatesGroup):
     QUESTION = State()
     ANSWER = State()
 
-@router.message(Command("add_test"))
-async def add_test_start(message: Message, state: FSMContext):
+@dp.message_handler(Command("add_test"))
+async def add_test_start(message: types.Message, state: FSMContext):
     user = fetch_data("users", {"telegram_id": message.from_user.id})
     capsules = fetch_data("study_capsules", {"user_id": user[0]['id']})
     if not capsules:
@@ -130,8 +133,8 @@ async def add_test_start(message: Message, state: FSMContext):
     await message.reply(f"Choose a capsule by ID:\n{capsule_list}")
     await state.set_state(TestStates.CAPSULE_ID)
 
-@router.message(TestStates.CAPSULE_ID)
-async def process_test_capsule_id(message: Message, state: FSMContext):
+@dp.message_handler(state=TestStates.CAPSULE_ID)
+async def process_test_capsule_id(message: types.Message, state: FSMContext):
     try:
         capsule_id = int(message.text)
         await state.update_data(capsule_id=capsule_id)
@@ -140,25 +143,25 @@ async def process_test_capsule_id(message: Message, state: FSMContext):
     except ValueError:
         await message.reply("Please enter a valid capsule ID.")
 
-@router.message(TestStates.QUESTION)
-async def process_test_question(message: Message, state: FSMContext):
+@dp.message_handler(state=TestStates.QUESTION)
+async def process_test_question(message: types.Message, state: FSMContext):
     await state.update_data(question=message.text)
     await message.reply("Enter the correct answer:")
     await state.set_state(TestStates.ANSWER)
 
-@router.message(TestStates.ANSWER)
-async def process_test_answer(message: Message, state: FSMContext):
+@dp.message_handler(state=TestStates.ANSWER)
+async def process_test_answer(message: types.Message, state: FSMContext):
     user_data = await state.get_data()
     capsule = fetch_data("study_capsules", {"id": user_data['capsule_id']})[0]
     test_questions = capsule.get('test_questions', [])
     test_questions.append({"question": user_data['question'], "answer": message.text})
     post_data("study_capsules", {"id": user_data['capsule_id'], "test_questions": test_questions}, update=True)
     await message.reply(f"Test question added to capsule ID {user_data['capsule_id']}!")
-    await state.clear()
+    await state.finish()
 
 # Мотивация
-@router.message(Command("get_motivation"))
-async def get_motivation(message: Message):
+@dp.message_handler(Command("get_motivation"))
+async def get_motivation(message: types.Message):
     user = fetch_data("users", {"telegram_id": message.from_user.id})
     analysis = analyze_progress(user[0]['id'])
     goals = fetch_data("goals", {"user_id": user[0]['id']})
@@ -169,8 +172,8 @@ async def get_motivation(message: Message):
         await message.reply("Set a goal first with /create_goal!")
 
 # Социальные функции
-@router.message(Command("motivation_feed"))
-async def show_motivation_feed(message: Message):
+@dp.message_handler(Command("motivation_feed"))
+async def show_motivation_feed(message: types.Message):
     user = fetch_data("users", {"telegram_id": message.from_user.id})
     friends = fetch_data("friends", {"user_id": user[0]['id']})
     activities = []
@@ -182,8 +185,8 @@ async def show_motivation_feed(message: Message):
     await message.reply("\n".join(activities) or "No activity yet.")
 
 # Геймификация
-@router.message(Command("view_achievements"))
-async def view_achievements(message: Message):
+@dp.message_handler(Command("view_achievements"))
+async def view_achievements(message: types.Message):
     user = fetch_data("users", {"telegram_id": message.from_user.id})
     achievements = fetch_data("achievements", {"user_id": user[0]['id']})
     if achievements:
