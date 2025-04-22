@@ -1,14 +1,14 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.storage import MemoryStorage
+from aiogram.dispatcher.storage import FSMContext
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from datetime import datetime, timedelta
 from database import post_data, fetch_data
 from utils import get_message, analyze_motivational_message, analyze_progress
 
-# Инициализация диспетчера
+# Инициализация диспетчера и хранилища
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
