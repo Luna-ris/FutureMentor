@@ -1,8 +1,5 @@
 import json
-from datetime import datetime, timedelta
-import aiohttp
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
+from datetime import datetime
 from transformers import pipeline
 import pandas as pd
 from database import fetch_data
@@ -19,24 +16,6 @@ def get_message(key: str, user_id: int, **kwargs) -> str:
     language = user[0]['language'] if user else "en"
     message = LOCALIZATION.get(language, {}).get(key, key)
     return message.format(**kwargs)
-
-# Интеграция с Google Calendar
-def add_to_google_calendar(user_id: int, goal_title: str, deadline: datetime):
-    creds = Credentials.from_authorized_user_file("google_credentials.json")
-    service = build('calendar', 'v3', credentials=creds)
-    event = {
-        'summary': goal_title,
-        'start': {'dateTime': deadline.isoformat(), 'timeZone': 'UTC'},
-        'end': {'dateTime': (deadline + timedelta(hours=1)).isoformat(), 'timeZone': 'UTC'},
-    }
-    service.events().insert(calendarId='primary', body=event).execute()
-
-# Интеграция с Coursera API
-async def get_recommended_courses(category: str) -> list:
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"https://api.coursera.org/api/courses?category={category}") as response:
-            data = await response.json()
-            return [course['name'] for course in data['elements'][:3]]
 
 # AI-аналитика
 sentiment_analyzer = pipeline("sentiment-analysis")
