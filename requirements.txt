@@ -8,4 +8,5 @@ celery==5.3.6
 redis==5.0.3
 transformers
 pandas
+torch
 aiohttp==3.8.4 
