@@ -1,1 +1,11 @@
-aiogram==2.25.1 supabase==2.4.0 celery==5.3.6 redis==5.0.3 python-dotenv==1.0.1 cryptography==42.0.5 transformers==4.40.0 pandas==2.2.2
+python-telegram-bot==20.0
+aiogram==2.25.1
+python-dotenv
+supabase
+cryptography
+pytz
+nest-asyncio
+celery==5.3.6
+redis==5.0.3
+transformers
+pandas
