@@ -1,5 +1,5 @@
 from celery import Celery
-from datetime import datetime
+from datetime import datetime, timedelta
 from database import fetch_data
 from aiogram import Bot
 from config import BOT_TOKEN
@@ -26,3 +26,16 @@ def send_study_capsule_reminder():
             bot.send_message(user[0]['telegram_id'], f"📚 Time to study: {capsule['content']}")
             if capsule['test_questions']:
                 bot.send_message(user[0]['telegram_id'], "Take the test: " + "\n".join([q['question'] for q in capsule['test_questions']]))
+
+@app.task
+def send_deadline_reminder():
+    goals = fetch_data("goals", {})
+    for goal in goals:
+        deadline = datetime.fromisoformat(goal['deadline'])
+        reminder_date = deadline - timedelta(days=1)  # Напоминание за 1 день
+        if reminder_date.date() == datetime.now().date():
+            user = fetch_data("users", {"id": goal['user_id']})
+            bot.send_message(
+                user[0]['telegram_id'],
+                f"⏰ Reminder: Your goal '{goal['title']}' is due tomorrow! Deadline: {deadline.strftime('%d.%m.%Y')}"
+            )
