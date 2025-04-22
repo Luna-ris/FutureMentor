@@ -1,0 +1,6 @@
+BOT_TOKEN = "your_bot_token_here"
+SUPABASE_URL = "your_supabase_url"
+SUPABASE_KEY = "your_supabase_key"
+REDIS_URL = "redis://localhost:6379/0"
+GOOGLE_CREDENTIALS_PATH = "google_credentials.json"
+COURSE_API_KEY = "your_coursera_api_key"
