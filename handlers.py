@@ -2,10 +2,10 @@ from aiogram import Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import Message
 from datetime import datetime, timedelta
 from database import post_data, fetch_data
-from utils import get_message, add_to_google_calendar, get_recommended_courses, analyze_motivational_message, analyze_progress
+from utils import get_message, analyze_motivational_message, analyze_progress
 
 router = Router()
 
@@ -14,7 +14,6 @@ class GoalStates(StatesGroup):
     TITLE = State()
     DEADLINE = State()
     MESSAGE = State()
-    ADD_TO_CALENDAR = State()
 
 @router.message(Command("create_goal"))
 async def create_goal_start(message: Message, state: FSMContext):
@@ -62,22 +61,22 @@ async def process_goal_message(message: Message, state: FSMContext):
     }
     post_data("goals", goal_data)
     mood = analyze_motivational_message(message.text)
-    await message.reply(f"✅ Goal '{user_data['title']}' created! Mood of your message: {mood}")
-    calendar_button = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    calendar_button.add(KeyboardButton("Yes"), KeyboardButton("No"))
-    await message.reply("Add to Google Calendar?", reply_markup=calendar_button)
-    await state.set_state(GoalStates.ADD_TO_CALENDAR)
-
-@router.message(GoalStates.ADD_TO_CALENDAR)
-async def process_add_to_calendar(message: Message, state: FSMContext):
-    user_data = await state.get_data()
-    if message.text.lower() == "yes":
-        user = fetch_data("users", {"telegram_id": message.from_user.id})
-        add_to_google_calendar(user[0]['id'], user_data['title'], user_data['deadline'])
-        await message.reply("Added to Google Calendar!")
-    else:
-        await message.reply("Skipped adding to Google Calendar.")
+    await message.reply(f"✅ Goal '{user_data['title']}' created! Mood of your message: {mood}\nI'll remind you about the deadline one day before: {user_data['deadline'].strftime('%d.%m.%Y')}")
     await state.clear()
+
+# Просмотр дедлайнов
+@router.message(Command("view_deadlines"))
+async def view_deadlines(message: Message):
+    user = fetch_data("users", {"telegram_id": message.from_user.id})
+    goals = fetch_data("goals", {"user_id": user[0]['id']})
+    if not goals:
+        await message.reply("You have no goals with deadlines yet. Create one with /create_goal.")
+        return
+    deadline_list = "\n".join([
+        f"- {g['title']}: {datetime.fromisoformat(g['deadline']).strftime('%d.%m.%Y')}"
+        for g in goals
+    ])
+    await message.reply(f"Your deadlines:\n{deadline_list}")
 
 # Создание учебных капсул
 class StudyCapsuleStates(StatesGroup):
@@ -166,9 +165,6 @@ async def get_motivation(message: Message):
     if goals:
         goal = goals[0]
         await message.reply(get_message("motivation_message", message.from_user.id, goal=goal['title'], progress=analysis['progress'], advice=analysis['advice']))
-        courses = await get_recommended_courses(goal['category'])
-        if courses:
-            await message.reply(f"Recommended courses:\n" + "\n".join(courses))
     else:
         await message.reply("Set a goal first with /create_goal!")
 
