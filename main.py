@@ -6,7 +6,8 @@ from aiohttp import web
 from aiogram.types import Message
 from dotenv import load_dotenv
 
-load_dotenv()
+# Убираем load_dotenv(), так как переменные окружения уже настроены на Railway
+# load_dotenv()
 
 # Настройка логирования
 logging.basicConfig(
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 # Инициализация бота и диспетчера
 TOKEN = os.getenv("BOT_TOKEN")
 if not TOKEN:
-    raise ValueError("BOT_TOKEN is not set!")
+    raise ValueError("BOT_TOKEN is not set!")  # Если токен не найден, выбрасываем ошибку
 bot = Bot(token=TOKEN)
 dp = Dispatcher()  # <- без аргументов
 
@@ -40,7 +41,7 @@ async def on_shutdown(dispatcher: Dispatcher):
     await bot.session.close()
     logger.info("Бот остановлен")
 
-# Корневой маршрут
+# Простой обработчик для корня
 async def root_handler(request):
     return web.Response(text="Бот работает!")
 
@@ -50,13 +51,15 @@ def main():
 
     # Настройка веб-приложения
     app = web.Application()
-    app.router.add_get("/", root_handler)  # Добавляем корневой маршрут
     request_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     request_handler.register(app, path="/webhook")
     setup_application(app, dp)
-    
+
+    # Добавляем маршрут для корня, чтобы избежать 404 ошибки
+    app.router.add_get("/", root_handler)
+
     # Запуск приложения
-    port = int(os.getenv("PORT", 8080))
+    port = int(os.getenv("PORT", 8000))
     web.run_app(app, host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
