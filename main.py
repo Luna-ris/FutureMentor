@@ -5,6 +5,7 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 from aiohttp import web
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.filters import CommandStart, RegexpCommandsFilter
 from dotenv import load_dotenv
 from handlers import setup_handlers  # Импортируем функцию setup_handlers
 
@@ -26,7 +27,6 @@ dp = Dispatcher(storage=storage)
 
 # Создание клавиатуры с основными командами
 def get_main_menu():
-    # Список кнопок
     buttons = [
         KeyboardButton(text="/create_goal"),
         KeyboardButton(text="/add_study_capsule"),
@@ -37,38 +37,39 @@ def get_main_menu():
         KeyboardButton(text="/set_mentor_style"),
         KeyboardButton(text="/leaderboard")
     ]
-    # Организуем кнопки в ряды по две
     keyboard_rows = [buttons[i:i+2] for i in range(0, len(buttons), 2)]
-    # Создаем объект ReplyKeyboardMarkup
     keyboard = ReplyKeyboardMarkup(
         keyboard=keyboard_rows,
         resize_keyboard=True
     )
     return keyboard
 
-@dp.message()
-async def handle_message(message: Message):
-    if message.text == "/start":
-        await message.reply(
-            "Привет! Я FutureMentor, твой наставник для достижения целей и обучения. "
-            "Выбери действие на клавиатуре или используй команды:\n"
-            "🎯 /create_goal - Создать цель\n"
-            "📚 /add_study_capsule - Добавить учебную капсулу\n"
-            "💡 /get_motivation - Получить мотивацию\n"
-            "🏆 /view_achievements - Посмотреть достижения\n"
-            "🌍 /join_challenge - Присоединиться к челленджу\n"
-            "🎮 /connect_habitica - Подключить Habitica\n"
-            "🧑‍🏫 /set_mentor_style - Выбрать стиль ментора\n"
-            "🏅 /leaderboard - Таблица лидеров",
-            reply_markup=get_main_menu()
-        )
-    else:
-        await message.reply(
-            "Неизвестная команда. Используй кнопки или введи одну из команд:\n"
-            "/create_goal, /add_study_capsule, /get_motivation, /view_achievements, "
-            "/join_challenge, /connect_habitica, /set_mentor_style, /leaderboard",
-            reply_markup=get_main_menu()
-        )
+@dp.message(CommandStart())
+async def handle_start(message: Message):
+    logger.info(f"Received /start from user {message.from_user.id}")
+    await message.reply(
+        "Привет! Я FutureMentor, твой наставник для достижения целей и обучения. "
+        "Выбери действие на клавиатуре или используй команды:\n"
+        "🎯 /create_goal - Создать цель\n"
+        "📚 /add_study_capsule - Добавить учебную капсулу\n"
+        "💡 /get_motivation - Получить мотивацию\n"
+        "🏆 /view_achievements - Посмотреть достижения\n"
+        "🌍 /join_challenge - Присоединиться к челленджу\n"
+        "🎮 /connect_habitica - Подключить Habitica\n"
+        "🧑‍🏫 /set_mentor_style - Выбрать стиль ментора\n"
+        "🏅 /leaderboard - Таблица лидеров",
+        reply_markup=get_main_menu()
+    )
+
+@dp.message(RegexpCommandsFilter(regexp_commands=['.*']))
+async def handle_unknown_command(message: Message):
+    logger.info(f"Received unknown command or text: {message.text} from user {message.from_user.id}")
+    await message.reply(
+        "Неизвестная команда. Используй кнопки или введи одну из команд:\n"
+        "/create_goal, /add_study_capsule, /get_motivation, /view_achievements, "
+        "/join_challenge, /connect_habitica, /set_mentor_style, /leaderboard",
+        reply_markup=get_main_menu()
+    )
 
 async def on_startup(dispatcher: Dispatcher):
     webhook_url = f"https://{os.getenv('RAILWAY_PUBLIC_DOMAIN')}/webhook"
@@ -85,6 +86,7 @@ async def root_handler(request):
 
 def main():
     # Инициализируем обработчики из handlers.py, передавая bot и storage
+    logger.info("Registering handlers from handlers.py")
     setup_handlers(dp, bot, storage)
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
