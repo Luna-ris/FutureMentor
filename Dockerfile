@@ -6,7 +6,12 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Обновление pip
+# Создание и активация виртуального окружения
+ENV VIRTUAL_ENV=/app/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Обновление pip в виртуальном окружении
 RUN pip install --upgrade pip==25.0.1
 
 # Установка рабочей директории
@@ -14,7 +19,7 @@ WORKDIR /app
 
 # Копирование и установка зависимостей
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt --timeout=100
 
 # Копирование кода приложения
 COPY . .
