@@ -5,7 +5,7 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 from aiohttp import web
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.filters import CommandStart, RegexpCommandsFilter
+from aiogram.filters import CommandStart
 from dotenv import load_dotenv
 from handlers import setup_handlers  # Импортируем функцию setup_handlers
 
@@ -61,11 +61,11 @@ async def handle_start(message: Message):
         reply_markup=get_main_menu()
     )
 
-@dp.message(RegexpCommandsFilter(regexp_commands=['.*']))
-async def handle_unknown_command(message: Message):
-    logger.info(f"Received unknown command or text: {message.text} from user {message.from_user.id}")
+@dp.message()
+async def handle_unknown_message(message: Message):
+    logger.info(f"Received message: {message.text} from user {message.from_user.id}")
     await message.reply(
-        "Неизвестная команда. Используй кнопки или введи одну из команд:\n"
+        "Неизвестная команда или сообщение. Используй кнопки или введи одну из команд:\n"
         "/create_goal, /add_study_capsule, /get_motivation, /view_achievements, "
         "/join_challenge, /connect_habitica, /set_mentor_style, /leaderboard",
         reply_markup=get_main_menu()
