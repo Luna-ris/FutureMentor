@@ -3,6 +3,10 @@ from transformers import pipeline
 import pandas as pd
 from database import fetch_data
 from localization import LOCALIZATION
+import os
+
+# Кэширование моделей
+os.environ["TRANSFORMERS_CACHE"] = "/app/.cache"
 
 def get_message(key: str, user_id: int, **kwargs) -> str:
     user = fetch_data("users", {"telegram_id": user_id})
@@ -11,7 +15,7 @@ def get_message(key: str, user_id: int, **kwargs) -> str:
     return message.format(**kwargs)
 
 # AI-аналитика
-sentiment_analyzer = pipeline("sentiment-analysis")
+sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", revision="714eb0f")
 
 def analyze_motivational_message(message: str) -> str:
     result = sentiment_analyzer(message)[0]
