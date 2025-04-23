@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Обновление pip
+RUN pip install --upgrade pip==25.0.1
+
 # Установка рабочей директории
 WORKDIR /app
 
