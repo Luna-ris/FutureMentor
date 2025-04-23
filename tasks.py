@@ -2,8 +2,6 @@ from celery import Celery
 from datetime import datetime, timedelta
 from database import fetch_data, post_data
 from aiogram import Bot
-from config import BOT_TOKEN
-from utils import get_message
 import os
 import nest_asyncio
 import logging
@@ -20,6 +18,7 @@ app = Celery('tasks')
 app.config_from_object('celeryconfig')
 
 # Инициализация бота
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=BOT_TOKEN)
 
 @app.task
