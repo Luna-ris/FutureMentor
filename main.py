@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 # Инициализация бота и диспетчера
 TOKEN = os.getenv("BOT_TOKEN")
+if not TOKEN:
+    raise ValueError("BOT_TOKEN is not set!")
 bot = Bot(token=TOKEN)
 dp = Dispatcher()  # <- без аргументов
 
