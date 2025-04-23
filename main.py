@@ -38,12 +38,17 @@ async def on_shutdown(dispatcher: Dispatcher):
     await bot.session.close()
     logger.info("Бот остановлен")
 
+# Корневой маршрут
+async def root_handler(request):
+    return web.Response(text="Бот работает!")
+
 def main():
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
 
     # Настройка веб-приложения
     app = web.Application()
+    app.router.add_get("/", root_handler)  # Добавляем корневой маршрут
     request_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     request_handler.register(app, path="/webhook")
     setup_application(app, dp)
