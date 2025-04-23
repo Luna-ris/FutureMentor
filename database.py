@@ -2,7 +2,6 @@ from supabase import create_client
 from config import SUPABASE_URL, SUPABASE_KEY
 import logging
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -17,7 +16,9 @@ async def init_db():
                 "telegram_id": "integer",
                 "username": "varchar",
                 "language": "varchar",
-                "timezone": "varchar"
+                "timezone": "varchar",
+                "mentor_style": "varchar",
+                "habitica_credentials": "varchar"
             }
         },
         {
@@ -40,6 +41,7 @@ async def init_db():
             "schema": {
                 "id": "serial primary key",
                 "goal_id": "integer",
+                "user_id": "integer",
                 "title": "varchar",
                 "completed": "boolean",
                 "created_at": "timestamp"
@@ -94,19 +96,46 @@ async def init_db():
                 "participants": "jsonb",
                 "created_at": "timestamp"
             }
+        },
+        {
+            "name": "group_goals",
+            "schema": {
+                "id": "serial primary key",
+                "title": "varchar",
+                "deadline": "timestamp",
+                "participants": "jsonb",
+                "created_at": "timestamp"
+            }
+        },
+        {
+            "name": "calendar_events",
+            "schema": {
+                "id": "serial primary key",
+                "user_id": "integer",
+                "event_name": "varchar",
+                "event_date": "timestamp",
+                "created_at": "timestamp"
+            }
+        },
+        {
+            "name": "test_results",
+            "schema": {
+                "id": "serial primary key",
+                "user_id": "integer",
+                "capsule_id": "integer",
+                "correct_answers": "integer",
+                "total_questions": "integer",
+                "created_at": "timestamp"
+            }
         }
     ]
     
     for table in tables:
         try:
-            # Проверка существования таблицы
             supabase.table(table["name"]).select("*").limit(1).execute()
             logger.info(f"Таблица {table['name']} уже существует")
         except Exception as e:
             logger.warning(f"Таблица {table['name']} не существует, создание...")
-            # Supabase Python SDK не поддерживает прямое создание таблиц через API
-            # Таблицы должны быть созданы в Supabase Dashboard или через SQL
-            # Здесь можно добавить SQL-запрос через supabase.rpc() или уведомление
             logger.error(f"Создание таблицы {table['name']} не реализовано в коде. Создайте таблицу в Supabase Dashboard.")
 
 def fetch_data(table: str, filters: dict):
