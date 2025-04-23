@@ -7,14 +7,18 @@ result_backend = broker_url
 beat_schedule = {
     'send-motivational-messages': {
         'task': 'tasks.send_motivational_message',
-        'schedule': crontab(hour=0, minute=0),  # Каждый день в полночь
+        'schedule': crontab(hour=0, minute=0),
     },
     'send-study-capsule-reminders': {
         'task': 'tasks.send_study_capsule_reminder',
-        'schedule': crontab(hour=0, minute=0),  # Каждый день в полночь
+        'schedule': crontab(hour=0, minute=0),
     },
     'send-deadline-reminders': {
         'task': 'tasks.send_deadline_reminder',
-        'schedule': crontab(hour=0, minute=0),  # Каждый день в полночь
+        'schedule': crontab(hour=0, minute=0),
+    },
+    'send-calendar-reminders': {
+        'task': 'tasks.send_calendar_reminder',
+        'schedule': crontab(hour=0, minute=0),
     },
 }
