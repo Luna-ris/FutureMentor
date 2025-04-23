@@ -19,6 +19,8 @@ WORKDIR /app
 
 # Копирование и установка зависимостей
 COPY requirements.txt .
+# Установка numpy перед другими зависимостями
+RUN pip install --no-cache-dir numpy<2.0.0
 # Установка torch отдельно с CPU-индексом
 RUN pip install --no-cache-dir torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu
 # Установка остальных зависимостей
