@@ -14,6 +14,8 @@ bot = Bot(token=BOT_TOKEN)
 async def main():
     logger.info("Инициализация базы данных...")
     await init_db()
+    logger.info("Сброс существующих вебхуков...")
+    await bot.delete_webhook()
     logger.info("Запуск бота...")
     await dp.start_polling(bot)
 
