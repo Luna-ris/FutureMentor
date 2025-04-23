@@ -1,25 +1,21 @@
-from aiogram import Dispatcher, types, Bot
+from aiogram import Dispatcher, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from datetime import datetime, timedelta
 from database import post_data, fetch_data
 from utils import get_message, analyze_motivational_message, analyze_progress, recommend_courses, add_to_habitica, add_to_local_calendar
 from crypto import encrypt_data, decrypt_data
-import os
 import logging
+from main import bot, storage  # Импортируем bot и storage из main.py
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Инициализация бота и диспетчера
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-bot = Bot(token=BOT_TOKEN)
-storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
+# Инициализация диспетчера
+dp = Dispatcher(storage=storage)
 
 # Создание клавиатуры для возврата в главное меню
 def get_back_to_menu():
@@ -93,7 +89,7 @@ async def process_goal_message(message: types.Message, state: FSMContext):
     mood = analyze_motivational_message(message.text)
     await message.reply(
         f"✅ Цель '{user_data['title']}' создана! Настроение сообщения: {mood}\n"
-        f"Напомню о дедлайне за день: {user_data['deadline'].strftime('%d.%m.%Y')}",
+        f"Напомню о дедлайне通過 день: {user_data['deadline'].strftime('%d.%m.%Y')}",
         reply_markup=get_main_menu()
     )
     await add_to_habitica(f"Цель: {user_data['title']}", message.from_user.id)
