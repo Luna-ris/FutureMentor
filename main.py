@@ -52,7 +52,7 @@ def main():
     request_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     request_handler.register(app, path="/webhook")
     setup_application(app, dp)
-
+    
     # Запуск приложения
     port = int(os.getenv("PORT", 8000))
     web.run_app(app, host="0.0.0.0", port=port)
