@@ -19,6 +19,9 @@ WORKDIR /app
 
 # Копирование и установка зависимостей
 COPY requirements.txt .
+# Установка torch отдельно с CPU-индексом
+RUN pip install --no-cache-dir torch==2.0.1 --index-url https://download.pytorch.org/whl/cpu
+# Установка остальных зависимостей
 RUN pip install --no-cache-dir -r requirements.txt --timeout=100
 
 # Копирование кода приложения
