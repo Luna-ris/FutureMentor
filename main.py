@@ -3,6 +3,10 @@ import os
 from aiogram import Bot, Dispatcher
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
+from aiogram.types import Message
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Настройка логирования
 logging.basicConfig(
@@ -12,25 +16,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Инициализация бота
+# Инициализация бота и диспетчера
 TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher()  # <- без аргументов
 
 # Обработчик команды /start
-@dp.message_handler(commands=["start"])
-async def start_command(message):
-    await message.reply("Привет! Бот запущен.")
+@dp.message()
+async def handle_message(message: Message):
+    if message.text == "/start":
+        await message.reply("Привет! Бот запущен.")
 
 # Функции startup и shutdown
-async def on_startup(_):
+async def on_startup(dispatcher: Dispatcher):
     webhook_url = f"https://{os.getenv('RAILWAY_PUBLIC_DOMAIN')}/webhook"
     await bot.set_webhook(webhook_url)
     logger.info(f"Webhook установлен: {webhook_url}")
 
-async def on_shutdown(_):
+async def on_shutdown(dispatcher: Dispatcher):
     await bot.delete_webhook()
-    await bot.get_session().close()
+    await bot.session.close()
     logger.info("Бот остановлен")
 
 def main():
