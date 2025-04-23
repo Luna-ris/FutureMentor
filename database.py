@@ -143,7 +143,7 @@ def fetch_data(table: str, filters: dict):
     for key, value in filters.items():
         query = query.eq(key, value)
     return query.execute().data
-
+    
 def post_data(table: str, data: dict, update: bool = False):
     if update:
         supabase.table(table).update(data).eq("id", data['id']).execute()
