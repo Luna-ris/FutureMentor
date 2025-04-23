@@ -3,39 +3,56 @@ from datetime import datetime, timedelta
 from database import fetch_data
 from aiogram import Bot
 from config import BOT_TOKEN
+import os
+import nest_asyncio
+import logging
 
-app = Celery('tasks', broker='redis://localhost:6379/0')
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Применение nest_asyncio для корректной работы асинхронных вызовов
+nest_asyncio.apply()
+
+# Инициализация Celery
+app = Celery('tasks')
+app.config_from_object('celeryconfig')
+
+# Инициализация бота
 bot = Bot(token=BOT_TOKEN)
 
 @app.task
-def send_motivational_message():
+async def send_motivational_message():
+    logger.info("Отправка мотивационных сообщений...")
     goals = fetch_data("goals", {})
     for goal in goals:
         send_date = datetime.fromisoformat(goal['message_send_date'])
         if send_date.date() == datetime.now().date():
             user = fetch_data("users", {"id": goal['user_id']})
-            bot.send_message(user[0]['telegram_id'], f"💡 Your motivational message: {goal['motivational_message']}")
+            await bot.send_message(user[0]['telegram_id'], f"💡 Your motivational message: {goal['motivational_message']}")
 
 @app.task
-def send_study_capsule_reminder():
+async def send_study_capsule_reminder():
+    logger.info("Отправка напоминаний о учебных капсулах...")
     capsules = fetch_data("study_capsules", {})
     for capsule in capsules:
         send_date = datetime.fromisoformat(capsule['send_date'])
         if send_date.date() == datetime.now().date():
             user = fetch_data("users", {"id": capsule['user_id']})
-            bot.send_message(user[0]['telegram_id'], f"📚 Time to study: {capsule['content']}")
+            await bot.send_message(user[0]['telegram_id'], f"📚 Time to study: {capsule['content']}")
             if capsule['test_questions']:
-                bot.send_message(user[0]['telegram_id'], "Take the test: " + "\n".join([q['question'] for q in capsule['test_questions']]))
+                await bot.send_message(user[0]['telegram_id'], "Take the test: " + "\n".join([q['question'] for q in capsule['test_questions']]))
 
 @app.task
-def send_deadline_reminder():
+async def send_deadline_reminder():
+    logger.info("Отправка напоминаний о дедлайнах...")
     goals = fetch_data("goals", {})
     for goal in goals:
         deadline = datetime.fromisoformat(goal['deadline'])
         reminder_date = deadline - timedelta(days=1)  # Напоминание за 1 день
         if reminder_date.date() == datetime.now().date():
             user = fetch_data("users", {"id": goal['user_id']})
-            bot.send_message(
+            await bot.send_message(
                 user[0]['telegram_id'],
                 f"⏰ Reminder: Your goal '{goal['title']}' is due tomorrow! Deadline: {deadline.strftime('%d.%m.%Y')}"
             )
