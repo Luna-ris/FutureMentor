@@ -6,7 +6,7 @@ from aiohttp import web
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
-from handlers import dp as handlers_dp  # Подключаем диспетчер из handlers.py
+from handlers import setup_handlers  # Импортируем функцию setup_handlers
 
 # Настройка логирования
 logging.basicConfig(
@@ -78,8 +78,8 @@ async def root_handler(request):
     return web.Response(text="Бот работает!")
 
 def main():
-    # Регистрируем обработчики из handlers.py
-    dp.include_router(handlers_dp)
+    # Инициализируем обработчики из handlers.py, передавая bot и storage
+    setup_handlers(dp, bot, storage)
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
 
