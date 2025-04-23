@@ -1,5 +1,5 @@
 from aiogram import Dispatcher, types
-from aiogram.filters import Command, StateFilter  # Добавляем StateFilter
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
@@ -15,10 +15,15 @@ logger = logging.getLogger(__name__)
 
 # Функция для инициализации обработчиков
 def setup_handlers(dp: Dispatcher, bot, storage):
+    logger.info("Starting to register handlers in handlers.py")
+
     # Создание клавиатуры для возврата в главное меню
     def get_back_to_menu():
-        keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(KeyboardButton(text="Вернуться в меню"))
+        buttons = [KeyboardButton(text="Вернуться в меню")]
+        keyboard = ReplyKeyboardMarkup(
+            keyboard=[buttons],
+            resize_keyboard=True
+        )
         return keyboard
 
     # Создание цели
@@ -29,11 +34,13 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(Command("create_goal"))
     async def create_goal_start(message: types.Message, state: FSMContext):
+        logger.info(f"Received /create_goal from user {message.from_user.id}")
         await message.reply(get_message("create_goal_title", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(GoalStates.TITLE)
 
     @dp.message(StateFilter(GoalStates.TITLE))
     async def process_goal_title(message: types.Message, state: FSMContext):
+        logger.info(f"Processing goal title from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -44,6 +51,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(GoalStates.DEADLINE))
     async def process_goal_deadline(message: types.Message, state: FSMContext):
+        logger.info(f"Processing goal deadline from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -58,6 +66,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(GoalStates.MESSAGE))
     async def process_goal_message(message: types.Message, state: FSMContext):
+        logger.info(f"Processing goal message from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -102,6 +111,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(Command("add_step"))
     async def add_step_start(message: types.Message, state: FSMContext):
+        logger.info(f"Received /add_step from user {message.from_user.id}")
         user = fetch_data("users", {"telegram_id": message.from_user.id})
         goals = fetch_data("goals", {"user_id": user[0]['id']})
         if not goals:
@@ -113,6 +123,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(StepStates.GOAL_ID))
     async def process_step_goal_id(message: types.Message, state: FSMContext):
+        logger.info(f"Processing step goal ID from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -128,6 +139,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(StepStates.TITLE))
     async def process_step_title(message: types.Message, state: FSMContext):
+        logger.info(f"Processing step title from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -154,6 +166,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
     # Просмотр дедлайнов
     @dp.message(Command("view_deadlines"))
     async def view_deadlines(message: types.Message):
+        logger.info(f"Received /view_deadlines from user {message.from_user.id}")
         user = fetch_data("users", {"telegram_id": message.from_user.id})
         goals = fetch_data("goals", {"user_id": user[0]['id']})
         if not goals:
@@ -172,11 +185,13 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(Command("add_study_capsule"))
     async def add_study_capsule_start(message: types.Message, state: FSMContext):
+        logger.info(f"Received /add_study_capsule from user {message.from_user.id}")
         await message.reply(get_message("study_capsule_content", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(StudyCapsuleStates.CONTENT)
 
     @dp.message(StateFilter(StudyCapsuleStates.CONTENT))
     async def process_study_capsule_content(message: types.Message, state: FSMContext):
+        logger.info(f"Processing study capsule content from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -190,6 +205,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(StudyCapsuleStates.SEND_DATE))
     async def process_study_capsule_send_date(message: types.Message, state: FSMContext):
+        logger.info(f"Processing study capsule send date from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -220,6 +236,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(Command("add_test"))
     async def add_test_start(message: types.Message, state: FSMContext):
+        logger.info(f"Received /add_test from user {message.from_user.id}")
         user = fetch_data("users", {"telegram_id": message.from_user.id})
         capsules = fetch_data("study_capsules", {"user_id": user[0]['id']})
         if not capsules:
@@ -231,6 +248,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(TestStates.CAPSULE_ID))
     async def process_test_capsule_id(message: types.Message, state: FSMContext):
+        logger.info(f"Processing test capsule ID from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -245,6 +263,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(TestStates.QUESTION))
     async def process_test_question(message: types.Message, state: FSMContext):
+        logger.info(f"Processing test question from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -255,6 +274,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(TestStates.ANSWER))
     async def process_test_answer(message: types.Message, state: FSMContext):
+        logger.info(f"Processing test answer from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -274,6 +294,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(Command("take_test"))
     async def take_test_start(message: types.Message, state: FSMContext):
+        logger.info(f"Received /take_test from user {message.from_user.id}")
         user = fetch_data("users", {"telegram_id": message.from_user.id})
         capsules = fetch_data("study_capsules", {"user_id": user[0]['id']})
         if not capsules:
@@ -285,6 +306,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(TakeTestStates.CAPSULE_ID))
     async def process_test_capsule_id(message: types.Message, state: FSMContext):
+        logger.info(f"Processing test capsule ID from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -304,6 +326,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(TakeTestStates.ANSWER))
     async def process_test_answer(message: types.Message, state: FSMContext):
+        logger.info(f"Processing test answer from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -335,6 +358,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
     # Мотивация
     @dp.message(Command("get_motivation"))
     async def get_motivation(message: types.Message):
+        logger.info(f"Received /get_motivation from user {message.from_user.id}")
         user = fetch_data("users", {"telegram_id": message.from_user.id})
         analysis = analyze_progress(user[0]['id'])
         goals = fetch_data("goals", {"user_id": user[0]['id']})
@@ -350,6 +374,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
     # Рекомендации курсов
     @dp.message(Command("recommend_course"))
     async def recommend_course(message: types.Message):
+        logger.info(f"Received /recommend_course from user {message.from_user.id}")
         user = fetch_data("users", {"telegram_id": message.from_user.id})
         goals = fetch_data("goals", {"user_id": user[0]['id']})
         if not goals:
@@ -367,11 +392,13 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(Command("connect_habitica"))
     async def connect_habitica_start(message: types.Message, state: FSMContext):
+        logger.info(f"Received /connect_habitica from user {message.from_user.id}")
         await message.reply(get_message("connect_habitica", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(HabiticaStates.CREDENTIALS)
 
     @dp.message(StateFilter(HabiticaStates.CREDENTIALS))
     async def process_habitica_credentials(message: types.Message, state: FSMContext):
+        logger.info(f"Processing Habitica credentials from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -388,6 +415,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
     # Установка стиля ментора
     @dp.message(Command("set_mentor_style"))
     async def set_mentor_style(message: types.Message):
+        logger.info(f"Received /set_mentor_style from user {message.from_user.id}")
         user = fetch_data("users", {"telegram_id": message.from_user.id})
         style = message.text.split()[-1].lower() if len(message.text.split()) > 1 else None
         if style not in ["strict", "friendly", "humorous"]:
@@ -397,6 +425,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
             )
             return
         post_data("users", {"id": user[0]['id'], "mentor_style": style}, update=True)
+        CLEAR
         await message.reply(f"Стиль ментора установлен: {style}", reply_markup=get_main_menu())
 
     # Создание групповой цели
@@ -406,11 +435,13 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(Command("create_group_goal"))
     async def create_group_goal_start(message: types.Message, state: FSMContext):
+        logger.info(f"Received /create_group_goal from user {message.from_user.id}")
         await message.reply(get_message("create_goal_title", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(GroupGoalStates.TITLE)
 
     @dp.message(StateFilter(GroupGoalStates.TITLE))
     async def process_group_goal_title(message: types.Message, state: FSMContext):
+        logger.info(f"Processing group goal title from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -421,6 +452,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(StateFilter(GroupGoalStates.DEADLINE))
     async def process_group_goal_deadline(message: types.Message, state: FSMContext):
+        logger.info(f"Processing group goal deadline from user {message.from_user.id}")
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
             await state.finish()
@@ -449,6 +481,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
     # Приглашение в групповую цель
     @dp.message(Command("invite_to_goal"))
     async def invite_to_goal(message: types.Message):
+        logger.info(f"Received /invite_to_goal from user {message.from_user.id}")
         try:
             goal_id = int(message.text.split()[-1])
             user = fetch_data("users", {"telegram_id": message.from_user.id})
@@ -467,6 +500,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
     # Социальные функции
     @dp.message(Command("motivation_feed"))
     async def show_motivation_feed(message: types.Message):
+        logger.info(f"Received /motivation_feed from user {message.from_user.id}")
         user = fetch_data("users", {"telegram_id": message.from_user.id})
         friends = fetch_data("friends", {"user_id": user[0]['id']})
         activities = []
@@ -483,6 +517,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
     # Присоединение к челленджу
     @dp.message(Command("join_challenge"))
     async def join_challenge(message: types.Message):
+        logger.info(f"Received /join_challenge from user {message.from_user.id}")
         challenges = fetch_data("challenges", {})
         if not challenges:
             await message.reply("Пока нет активных челленджей.", reply_markup=get_main_menu())
@@ -501,6 +536,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
     # Геймификация
     @dp.message(Command("view_achievements"))
     async def view_achievements(message: types.Message):
+        logger.info(f"Received /view_achievements from user {message.from_user.id}")
         user = fetch_data("users", {"telegram_id": message.from_user.id})
         achievements = fetch_data("achievements", {"user_id": user[0]['id']})
         if achievements:
@@ -511,6 +547,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
 
     @dp.message(Command("leaderboard"))
     async def leaderboard(message: types.Message):
+        logger.info(f"Received /leaderboard from user {message.from_user.id}")
         points = fetch_data("points", {})
         user_points = {}
         for point in points:
@@ -522,9 +559,8 @@ def setup_handlers(dp: Dispatcher, bot, storage):
             leaderboard.append(f"@{user['username']}: {total_points} баллов")
         await message.reply(get_message("leaderboard", message.from_user.id, leaderboard="\n".join(leaderboard)), reply_markup=get_main_menu())
 
-    # Функция для главного меню (используется в других местах)
+    # Функция для главного меню
     def get_main_menu():
-        keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         buttons = [
             KeyboardButton(text="/create_goal"),
             KeyboardButton(text="/add_study_capsule"),
@@ -535,5 +571,9 @@ def setup_handlers(dp: Dispatcher, bot, storage):
             KeyboardButton(text="/set_mentor_style"),
             KeyboardButton(text="/leaderboard")
         ]
-        keyboard.add(*buttons)
+        keyboard_rows = [buttons[i:i+2] for i in range(0, len(buttons), 2)]
+        keyboard = ReplyKeyboardMarkup(
+            keyboard=keyboard_rows,
+            resize_keyboard=True
+        )
         return keyboard
