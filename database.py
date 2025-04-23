@@ -1,10 +1,12 @@
 from supabase import create_client
-from config import SUPABASE_URL, SUPABASE_KEY
+import os
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 async def init_db():
@@ -143,7 +145,7 @@ def fetch_data(table: str, filters: dict):
     for key, value in filters.items():
         query = query.eq(key, value)
     return query.execute().data
-    
+
 def post_data(table: str, data: dict, update: bool = False):
     if update:
         supabase.table(table).update(data).eq("id", data['id']).execute()
