@@ -1,4 +1,0 @@
-BOT_TOKEN = "8125981860:AAHwYHdWsc4FxkudHHTqctfVFLjnLQAsQKk"
-SUPABASE_URL = "https://tayrtfkknvqyqgmkiqsz.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRheXJ0ZmtrbnZxeXFnbWtpcXN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUzNTQ0NzksImV4cCI6MjA2MDkzMDQ3OX0.-ohgbLdcVYVSPE7tQiIeCqsAIwnlkDkZidU04ZmNGZU"
-REDIS_URL = "redis://localhost:6379/0"
