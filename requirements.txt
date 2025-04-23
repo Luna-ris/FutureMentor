@@ -12,3 +12,4 @@ pandas==2.0.3
 torch==2.0.1
 huggingface_hub[hf_xet]==0.23.0
 numpy<2.0.0
+requests==2.32.3
