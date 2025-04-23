@@ -1,5 +1,5 @@
 from aiogram import Dispatcher, types
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter  # Добавляем StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
@@ -32,7 +32,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply(get_message("create_goal_title", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(GoalStates.TITLE)
 
-    @dp.message(state=GoalStates.TITLE)
+    @dp.message(StateFilter(GoalStates.TITLE))
     async def process_goal_title(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -42,7 +42,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply(get_message("create_goal_deadline", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(GoalStates.DEADLINE)
 
-    @dp.message(state=GoalStates.DEADLINE)
+    @dp.message(StateFilter(GoalStates.DEADLINE))
     async def process_goal_deadline(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -56,7 +56,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         except ValueError:
             await message.reply("Неверный формат даты! Используйте дд.мм.гггг.", reply_markup=get_back_to_menu())
 
-    @dp.message(state=GoalStates.MESSAGE)
+    @dp.message(StateFilter(GoalStates.MESSAGE))
     async def process_goal_message(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -111,7 +111,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply(f"Выберите ID цели:\n{goal_list}", reply_markup=get_back_to_menu())
         await state.set_state(StepStates.GOAL_ID)
 
-    @dp.message(state=StepStates.GOAL_ID)
+    @dp.message(StateFilter(StepStates.GOAL_ID))
     async def process_step_goal_id(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -126,7 +126,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         except (ValueError, IndexError):
             await message.reply("Неверный ID цели.", reply_markup=get_back_to_menu())
 
-    @dp.message(state=StepStates.TITLE)
+    @dp.message(StateFilter(StepStates.TITLE))
     async def process_step_title(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -175,7 +175,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply(get_message("study_capsule_content", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(StudyCapsuleStates.CONTENT)
 
-    @dp.message(state=StudyCapsuleStates.CONTENT)
+    @dp.message(StateFilter(StudyCapsuleStates.CONTENT))
     async def process_study_capsule_content(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -188,7 +188,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply(get_message("study_capsule_send_date", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(StudyCapsuleStates.SEND_DATE)
 
-    @dp.message(state=StudyCapsuleStates.SEND_DATE)
+    @dp.message(StateFilter(StudyCapsuleStates.SEND_DATE))
     async def process_study_capsule_send_date(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -229,7 +229,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply(f"Выберите ID капсулы:\n{capsule_list}", reply_markup=get_back_to_menu())
         await state.set_state(TestStates.CAPSULE_ID)
 
-    @dp.message(state=TestStates.CAPSULE_ID)
+    @dp.message(StateFilter(TestStates.CAPSULE_ID))
     async def process_test_capsule_id(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -243,7 +243,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         except ValueError:
             await message.reply("Введите корректный ID капсулы.", reply_markup=get_back_to_menu())
 
-    @dp.message(state=TestStates.QUESTION)
+    @dp.message(StateFilter(TestStates.QUESTION))
     async def process_test_question(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -253,7 +253,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply("Введите правильный ответ:", reply_markup=get_back_to_menu())
         await state.set_state(TestStates.ANSWER)
 
-    @dp.message(state=TestStates.ANSWER)
+    @dp.message(StateFilter(TestStates.ANSWER))
     async def process_test_answer(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -283,7 +283,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply(f"Выберите ID капсулы для теста:\n{capsule_list}", reply_markup=get_back_to_menu())
         await state.set_state(TakeTestStates.CAPSULE_ID)
 
-    @dp.message(state=TakeTestStates.CAPSULE_ID)
+    @dp.message(StateFilter(TakeTestStates.CAPSULE_ID))
     async def process_test_capsule_id(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -302,7 +302,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         except (ValueError, IndexError):
             await message.reply("Неверный ID капсулы.", reply_markup=get_back_to_menu())
 
-    @dp.message(state=TakeTestStates.ANSWER)
+    @dp.message(StateFilter(TakeTestStates.ANSWER))
     async def process_test_answer(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -370,7 +370,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply(get_message("connect_habitica", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(HabiticaStates.CREDENTIALS)
 
-    @dp.message(state=HabiticaStates.CREDENTIALS)
+    @dp.message(StateFilter(HabiticaStates.CREDENTIALS))
     async def process_habitica_credentials(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -409,7 +409,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply(get_message("create_goal_title", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(GroupGoalStates.TITLE)
 
-    @dp.message(state=GroupGoalStates.TITLE)
+    @dp.message(StateFilter(GroupGoalStates.TITLE))
     async def process_group_goal_title(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
@@ -419,7 +419,7 @@ def setup_handlers(dp: Dispatcher, bot, storage):
         await message.reply(get_message("create_goal_deadline", message.from_user.id), reply_markup=get_back_to_menu())
         await state.set_state(GroupGoalStates.DEADLINE)
 
-    @dp.message(state=GroupGoalStates.DEADLINE)
+    @dp.message(StateFilter(GroupGoalStates.DEADLINE))
     async def process_group_goal_deadline(message: types.Message, state: FSMContext):
         if message.text == "Вернуться в меню":
             await message.reply("Возвращаемся в меню!", reply_markup=get_main_menu())
