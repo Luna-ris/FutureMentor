@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from database import post_data, fetch_data
 from utils import get_message, analyze_motivational_message, analyze_progress, recommend_courses, add_to_habitica, add_to_local_calendar
 from crypto import encrypt_data
-from config import BOT_TOKEN
+import os
 import logging
 
 # Настройка логирования
@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Инициализация бота и диспетчера
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=BOT_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
@@ -409,7 +410,7 @@ async def join_challenge(message: types.Message):
     if not challenges:
         await message.reply("Пока нет активных челленджей.")
         return
-    challenge = challenges[0]  # Для простоты берем первый челлендж
+    challenge = challenges[0]
     user = fetch_data("users", {"telegram_id": message.from_user.id})
     participants = challenge.get('participants', [])
     if user[0]['id'] in participants:
