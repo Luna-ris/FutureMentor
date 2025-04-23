@@ -26,7 +26,12 @@ dp = Dispatcher(storage=storage)
 
 # Создание клавиатуры с основными командами
 def get_main_menu():
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    # Создаем объект ReplyKeyboardMarkup с пустым списком кнопок
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[],  # Обязательное поле keyboard
+        resize_keyboard=True,
+        row_width=2
+    )
     buttons = [
         KeyboardButton(text="/create_goal"),
         KeyboardButton(text="/add_study_capsule"),
@@ -37,7 +42,7 @@ def get_main_menu():
         KeyboardButton(text="/set_mentor_style"),
         KeyboardButton(text="/leaderboard")
     ]
-    keyboard.add(*buttons)
+    keyboard.add(*buttons)  # Добавляем кнопки
     return keyboard
 
 @dp.message()
