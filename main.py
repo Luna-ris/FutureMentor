@@ -3,11 +3,9 @@ import os
 from aiogram import Bot, Dispatcher
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from dotenv import load_dotenv
-
-# Убираем load_dotenv(), так как переменные окружения уже настроены на Railway
-# load_dotenv()
+from handlers import dp as handlers_dp  # Подключаем диспетчер из handlers.py
 
 # Настройка логирования
 logging.basicConfig(
@@ -20,17 +18,50 @@ logger = logging.getLogger(__name__)
 # Инициализация бота и диспетчера
 TOKEN = os.getenv("BOT_TOKEN")
 if not TOKEN:
-    raise ValueError("BOT_TOKEN is not set!")  # Если токен не найден, выбрасываем ошибку
+    raise ValueError("BOT_TOKEN is not set!")
 bot = Bot(token=TOKEN)
-dp = Dispatcher()  # <- без аргументов
+dp = Dispatcher()
 
-# Обработчик команды /start
+# Создание клавиатуры с основными командами
+def get_main_menu():
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    buttons = [
+        KeyboardButton(text="/create_goal"),
+        KeyboardButton(text="/add_study_capsule"),
+        KeyboardButton(text="/get_motivation"),
+        KeyboardButton(text="/view_achievements"),
+        KeyboardButton(text="/join_challenge"),
+        KeyboardButton(text="/connect_habitica"),
+        KeyboardButton(text="/set_mentor_style"),
+        KeyboardButton(text="/leaderboard")
+    ]
+    keyboard.add(*buttons)
+    return keyboard
+
 @dp.message()
 async def handle_message(message: Message):
     if message.text == "/start":
-        await message.reply("Привет! Бот запущен.")
+        await message.reply(
+            "Привет! Я FutureMentor, твой наставник для достижения целей и обучения. "
+            "Выбери действие на клавиатуре или используй команды:\n"
+            "🎯 /create_goal - Создать цель\n"
+            "📚 /add_study_capsule - Добавить учебную капсулу\n"
+            "💡 /get_motivation - Получить мотивацию\n"
+            "🏆 /view_achievements - Посмотреть достижения\n"
+            "🌍 /join_challenge - Присоединиться к челленджу\n"
+            "🎮 /connect_habitica - Подключить Habitica\n"
+            "🧑‍🏫 /set_mentor_style - Выбрать стиль ментора\n"
+            "🏅 /leaderboard - Таблица лидеров",
+            reply_markup=get_main_menu()
+        )
+    else:
+        await message.reply(
+            "Неизвестная команда. Используй кнопки или введи одну из команд:\n"
+            "/create_goal, /add_study_capsule, /get_motivation, /view_achievements, "
+            "/join_challenge, /connect_habitica, /set_mentor_style, /leaderboard",
+            reply_markup=get_main_menu()
+        )
 
-# Функции startup и shutdown
 async def on_startup(dispatcher: Dispatcher):
     webhook_url = f"https://{os.getenv('RAILWAY_PUBLIC_DOMAIN')}/webhook"
     await bot.set_webhook(webhook_url)
@@ -41,24 +72,22 @@ async def on_shutdown(dispatcher: Dispatcher):
     await bot.session.close()
     logger.info("Бот остановлен")
 
-# Простой обработчик для корня
 async def root_handler(request):
     return web.Response(text="Бот работает!")
 
 def main():
+    # Регистрируем обработчики из handlers.py
+    dp.include_router(handlers_dp)
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
 
-    # Настройка веб-приложения
     app = web.Application()
     request_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     request_handler.register(app, path="/webhook")
     setup_application(app, dp)
 
-    # Добавляем маршрут для корня, чтобы избежать 404 ошибки
     app.router.add_get("/", root_handler)
 
-    # Запуск приложения
     port = int(os.getenv("PORT", 8000))
     web.run_app(app, host="0.0.0.0", port=port)
 
