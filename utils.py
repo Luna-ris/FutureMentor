@@ -4,6 +4,10 @@ import pandas as pd
 from database import fetch_data
 from localization import LOCALIZATION
 import os
+import warnings
+
+# Игнорирование предупреждений от huggingface_hub
+warnings.filterwarnings("ignore", category=FutureWarning, module="huggingface_hub")
 
 # Кэширование моделей
 os.environ["TRANSFORMERS_CACHE"] = "/app/.cache"
@@ -15,9 +19,11 @@ def get_message(key: str, user_id: int, **kwargs) -> str:
     return message.format(**kwargs)
 
 # AI-аналитика
-sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", revision="714eb0f")
+def get_sentiment_analyzer():
+    return pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", revision="714eb0f")
 
 def analyze_motivational_message(message: str) -> str:
+    sentiment_analyzer = get_sentiment_analyzer()
     result = sentiment_analyzer(message)[0]
     return result['label']
 
