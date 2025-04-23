@@ -4,6 +4,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
 from handlers import dp as handlers_dp  # Подключаем диспетчер из handlers.py
 
@@ -15,12 +16,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Инициализация бота и диспетчера
+# Инициализация бота, хранилища и диспетчера
 TOKEN = os.getenv("BOT_TOKEN")
 if not TOKEN:
     raise ValueError("BOT_TOKEN is not set!")
 bot = Bot(token=TOKEN)
-dp = Dispatcher()
+storage = MemoryStorage()
+dp = Dispatcher(storage=storage)
 
 # Создание клавиатуры с основными командами
 def get_main_menu():
@@ -84,9 +86,7 @@ def main():
     app = web.Application()
     request_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     request_handler.register(app, path="/webhook")
-    setup_application(app, dp)
-
-    app.router.add_get("/", root_handler)
+    setup_application(app, dp, bot=bot)
 
     port = int(os.getenv("PORT", 8000))
     web.run_app(app, host="0.0.0.0", port=port)
