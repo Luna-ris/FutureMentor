@@ -1,8 +1,9 @@
 from celery import Celery
 from datetime import datetime, timedelta
-from database import fetch_data
+from database import fetch_data, post_data
 from aiogram import Bot
 from config import BOT_TOKEN
+from utils import get_message
 import os
 import nest_asyncio
 import logging
@@ -49,10 +50,20 @@ async def send_deadline_reminder():
     goals = fetch_data("goals", {})
     for goal in goals:
         deadline = datetime.fromisoformat(goal['deadline'])
-        reminder_date = deadline - timedelta(days=1)  # Напоминание за 1 день
+        reminder_date = deadline - timedelta(days=1)
         if reminder_date.date() == datetime.now().date():
             user = fetch_data("users", {"id": goal['user_id']})
             await bot.send_message(
                 user[0]['telegram_id'],
                 f"⏰ Reminder: Your goal '{goal['title']}' is due tomorrow! Deadline: {deadline.strftime('%d.%m.%Y')}"
             )
+
+@app.task
+async def send_calendar_reminder():
+    logger.info("Отправка напоминаний о событиях в календаре...")
+    events = fetch_data("calendar_events", {})
+    for event in events:
+        event_date = datetime.fromisoformat(event['event_date'])
+        if event_date.date() == datetime.now().date():
+            user = fetch_data("users", {"id": event['user_id']})
+            await bot.send_message(user[0]['telegram_id'], f"🗓 Reminder: {event['event_name']} is today!")
