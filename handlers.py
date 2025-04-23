@@ -1,16 +1,22 @@
-from aiogram import Dispatcher, types
+from aiogram import Dispatcher, types, Bot
 from aiogram.dispatcher.filters import Command
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.storage import FSMContext
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from datetime import datetime, timedelta
 from database import post_data, fetch_data
 from utils import get_message, analyze_motivational_message, analyze_progress
+from config import BOT_TOKEN
+import logging
 
-# Инициализация диспетчера и хранилища
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Инициализация бота и диспетчера
+bot = Bot(token=BOT_TOKEN)
 storage = MemoryStorage()
-dp = Dispatcher(storage=storage)
+dp = Dispatcher(bot, storage=storage)
 
 # Создание цели
 class GoalStates(StatesGroup):
