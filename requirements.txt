@@ -1,6 +1,6 @@
 aiogram==2.25.2
 python-dotenv==1.1.0
-supabase==2.7.1
+supabase==1.0.3
 cryptography==44.0.2
 pytz==2025.2
 nest-asyncio==1.6.0
